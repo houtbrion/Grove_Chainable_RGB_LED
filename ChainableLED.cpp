@@ -77,6 +77,7 @@ void ChainableLED::sendByte(byte b) {
     }
 }
 
+#if (!defined(ARDUINO_UNOR4_MINIMA) && !defined(ARDUINO_UNOR4_WIFI) && !defined(ARDUINO_NANO_R4))
 void ChainableLED::sendColor(byte red, byte green, byte blue) {
     // Start by sending a byte with the format "1 1 /B7 /B6 /G7 /G6 /R7 /R6"
     byte prefix = B11000000;
@@ -105,6 +106,36 @@ void ChainableLED::sendColor(byte red, byte green, byte blue) {
     sendByte(green);
     sendByte(red);
 }
+#else
+void ChainableLED::sendColor(byte red, byte green, byte blue) {
+    // Start by sending a byte with the format "1 1 /B7 /B6 /G7 /G6 /R7 /R6"
+    byte prefix = 0b11000000;
+    if ((blue & 0x80) == 0) {
+        prefix |= 0b00100000;
+    }
+    if ((blue & 0x40) == 0) {
+        prefix |= 0b00010000;
+    }
+    if ((green & 0x80) == 0) {
+        prefix |= 0b00001000;
+    }
+    if ((green & 0x40) == 0) {
+        prefix |= 0b00000100;
+    }
+    if ((red & 0x80) == 0) {
+        prefix |= 0b00000010;
+    }
+    if ((red & 0x40) == 0) {
+        prefix |= 0b00000001;
+    }
+    sendByte(prefix);
+
+    // Now must send the 3 colors
+    sendByte(blue);
+    sendByte(green);
+    sendByte(red);
+}
+#endif /* (!defined(ARDUINO_UNOR4_MINIMA) && !defined(ARDUINO_UNOR4_WIFI) && !defined(ARDUINO_NANO_R4)) */
 
 void ChainableLED::setColorRGB(byte led, byte red, byte green, byte blue) {
     // Send data frame prefix (32x "0")
